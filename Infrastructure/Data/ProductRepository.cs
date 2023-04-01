@@ -1,5 +1,6 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,14 +11,37 @@ namespace Infrastructure.Data
 {
     public class ProductRepository : IProductRepository
     {
-        public Task<IReadOnlyList<Product>> GetAllProducts()
+        private readonly StoreContext _context;
+
+        public ProductRepository(StoreContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
-        public Task<Product> GetProductById(int id)
+        public async Task<IReadOnlyList<ProductBrand>> GetAllProductBrands()
         {
-            throw new NotImplementedException();
+            return await _context.ProductBrands.ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<Product>> GetAllProducts()
+        {
+            return await _context.products
+                .Include(p => p.ProductPrand)
+                .Include(p => p.PoductType)
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<ProductType>> GetAllProductTypes()
+        {
+            return await _context.ProductTypes.ToListAsync();
+        }
+
+        public async Task<Product> GetProductById(int id)
+        {
+            return await _context.products
+                .Include(p => p.ProductPrand)
+                .Include(p => p.PoductType)
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
     }
 }
